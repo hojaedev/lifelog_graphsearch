@@ -3,7 +3,7 @@
 <head>
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta charset="utf-8" http-equiv="encoding">
-    <title>Sclab_Lifelog_demo</title>
+    <title>Graph based Lifelog search</title>
 
     <script src="../dist/moment.min.js"></script>
     <script src="../dist/jquery.min.js"></script>
@@ -99,15 +99,15 @@
             $("#resetNode").attr("disabled", false);
             $("#searchNode").attr("disabled", false);
 
-            // let range = $("#date").val();
-            let range = '2018-09-03 to 2018-09-16';
+            let range = $("#date").val();
+            // let range = '2018-09-03 to 2018-09-16';
             console.log(range);
             let start_date = new Date(range.split(' ')[0]);
             let end_date = new Date(range.split(' ')[2]);
 
             let days = (end_date - start_date) / (1000 * 60 * 60 * 24);
-            // let personIndex = $("#personIndex").val()
-            let personIndex = '1';
+            let personIndex = $("#personIndex").val()
+            // let personIndex = '1';
             DATASET = SclabUtil.readInputFile(range.split(' ')[0], days + 1, personIndex);
             manager = new SNmanager(DATASET[0]);
             manager.init();
@@ -122,11 +122,11 @@
         //fuction4: 서치 결과 리턴. Go버튼 누를 시 작동.
         function loadSearchResult(){
             //pattern search 결과
-            // let gss = $("#gss").val();
-            // let dh = $("#date-hour").val();
+            let gss = $("#gss").val();
+            let dh = $("#date-hour").val();
             let atr = $("#attribute").val();
-            let gss = 'activity';
-            let dh = '2018-09-03-2';
+            // let gss = 'activity';
+            // let dh = '2018-09-03-2';
 
             let searchResult = manager.searchNode(gss, dh, atr)
                 .map(([startsAt, endsAt, value]) => `${startsAt} ~ ${endsAt} : ${value}`)

@@ -1,6 +1,3 @@
-/*
-* Created by wonsup
- *  */
 
 /*
 * 1. root : 시멘틱 네트워크의 root node. init function에서 정의됨
