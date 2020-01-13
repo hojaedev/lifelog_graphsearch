@@ -22,7 +22,7 @@
     <link href="main.css" rel="stylesheet" type="text/css" />
 
     <script type="text/javascript">
-        // 이 안에서 vis 라이브러리를 사용해 코딩하면됨
+        
         let manager = null;
         let timeline = new Timeline();
 
@@ -30,14 +30,12 @@
         let nodes = null;
         let edges = null;
 
-        //시각화 초기값
         $(document).ready(() => {
             draw_network();
             draw_timeline();
             $('#date').dateRangePicker();
         });
 
-        //fuction1: 타임라인 시각화 함수
         function draw_timeline(){
             let timeline_container = document.getElementById('timeline_visualization');
             if( manager == null) { timeline.init(null); }
@@ -45,14 +43,12 @@
             timeline.draw(timeline_container);
         }
 
-        //fuction2: 네트워크 시각화 함수
         function draw_network(){
             if (network != null) {
                 network.destroy();
                 network = null;
             }
             let container = document.getElementById("networkViewer");
-            //네트워크 초기에 'loading' 보여줌
             if (nodes == null && edges == null) {
                 let data = {
                     nodes: [{
@@ -64,7 +60,6 @@
                 network = new vis.Network(container, data, {});
                 return;
             }
-            //네트워크 시각화 옵션(크기, 색상)
             let options = {
                 nodes: {
                     shape: 'dot',
@@ -78,20 +73,17 @@
 
                 physics: true,
                 interaction: {
-                //    tooltipDelay: 200,
                     hideEdgesOnDrag: false
                 }
             };
 
             let data = {nodes: nodes, edges: edges}
 
-            //네트워크 구조에 데이터 추가
             network = new vis.Network(container, data, options);
             network.on("click", addNode);
             network.fit();
         }
 
-        //fuction3: 사용자 입력에 따른 데이터 로드 함수. Load 버튼 누를 시 작동.
         function loadData(){
             $("#date").attr("disabled", false);
             $("#personIndex").attr("disabled", false);
@@ -100,14 +92,12 @@
             $("#searchNode").attr("disabled", false);
 
             let range = $("#date").val();
-            // let range = '2018-09-03 to 2018-09-16';
             console.log(range);
             let start_date = new Date(range.split(' ')[0]);
             let end_date = new Date(range.split(' ')[2]);
 
             let days = (end_date - start_date) / (1000 * 60 * 60 * 24);
             let personIndex = $("#personIndex").val()
-            // let personIndex = '1';
             DATASET = SclabUtil.readInputFile(range.split(' ')[0], days + 1, personIndex);
             manager = new SNmanager(DATASET[0]);
             manager.init();
@@ -119,14 +109,10 @@
             resetAllNodes();
         }
 
-        //fuction4: 서치 결과 리턴. Go버튼 누를 시 작동.
         function loadSearchResult(){
-            //pattern search 결과
             let gss = $("#gss").val();
             let dh = $("#date-hour").val();
             let atr = $("#attribute").val();
-            // let gss = 'activity';
-            // let dh = '2018-09-03-2';
 
             let searchResult = manager.searchNode(gss, dh, atr)
                 .map(([startsAt, endsAt, value]) => `${startsAt} ~ ${endsAt} : ${value}`)
@@ -135,7 +121,6 @@
             $("#searchResult").html(searchResult);
         }
 
-        //fuction5: 모든 노드, 엣지 초기화 (시각적으로 루트노드만 보여짐). reset 버튼 누를 시 작동.
         function resetAllNodes() {
             if (network != null) {
                 network.destroy();
@@ -164,25 +149,17 @@
             manager.root.displayed = true;
         }
 
-        //fuction6: GUI상의 노드 클릭시 해당노드의 child node를 추가하는 함수
         function addNode(params) {
-            // 클릭된 노드 정보 없을 경우 중단
-            console.log(params);
-            if (params["nodes"].length === 0) {
-                return;
-            }
-            // 클릭된 노드의 정보 불러오기
+
+            if (params["nodes"].length === 0) return;
+            
             const self_id = params['nodes'][0];
             const self = manager.getNodeById(remove_index(self_id));
-            // 클릭된 노드가 자식 노드를 가지고 있지 않은 경우 중단
-            if (self.children_list.length === 0) {
-                return;
-            }
-            // 클릭된 횟수 정보가 없는 경우 초기화
-            if (self.open_count === undefined) {
-                self.open_count = 0;
-            }
-            // 자식 노드들에서 중복된 ID가 발생하지 않도록 전처리
+            
+            if (self.children_list.length === 0) return;
+            
+            if (self.open_count === undefined) self.open_count = 0;
+            
             self.children_list.forEach((child_a, index_a, array) => {
                 if (child_a.id === undefined) {
                     let index = 0;
@@ -197,8 +174,7 @@
                     child_a.id = `${child_a.attribute}${child_a.value}|${index}`
                 }
             });
-            // 표시할 노드/엣지 정보를 읽어오고
-            // 이미 표시된 노드들을 제거
+ 
             let tempNodes = [];
             let tempEdges = [];
             self.children_list.forEach((child) => {
@@ -206,7 +182,7 @@
                 tempNodes.push({id: child.id, label: child.value});
                 tempEdges.push({id: get_edge_id(self, child), from: self_id, to: child.id});
             });
-            // 읽어온 노드/엣지 정보 중에서 클릭 횟수에 따른 15개만 추리기
+            
             if (tempNodes.length > self.open_count * 15) {
                 tempNodes = tempNodes.slice(self.open_count * 15, self.open_count * 15 + 15);
                 tempEdges = tempEdges.slice(self.open_count * 15, self.open_count * 15 + 15);
@@ -216,22 +192,18 @@
                 tempEdges = tempEdges.slice(0, 15);
                 self.open_count = 1;
             }
-            // 화면에 표시
             nodes.add(tempNodes);
             edges.add(tempEdges);
         }
 
-        //fuction7: NetworkManager와 Vis.Dataset의 서로 다른 ID를 정규화하는 함수
         function remove_index(id) {
             return id.split("|", 2)[0];
         }
 
-        //fuction8: Vis.Dataset의 edge ID를 반환
         function get_edge_id(from, to) {
             return `${from.id}|${to.id}`;
         }
 
-        //fuction9: 반복 클릭에 의해 제거되지 않던 child node 재귀적으로 제거
         function remove_child_node(parent_node, child_node) {
             for (const node of child_node.children_list) {
                 remove_child_node(child_node, node)
